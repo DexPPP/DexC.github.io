@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DexC Debugging Suite</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/retelile/DexC/main/DexC.png">
+
+    <meta property="og:title" content="DexC Debugging Suite" />
+    <meta property="og:description" content="DexC is your go-to explorer, specifically designed to help you debug or identify vulnerabilities within Roblox games." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/retelile/DexC/main/DexCVersion1.png" />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#6f4cff" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #121214;
+            color: #e2e2e6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 60px 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #snow-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1400px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        .container {
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            max-width: 320px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 32px;
+        }
+
+        .headline {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .description {
+            font-size: 1.05rem;
+            line-height: 1.65;
+            color: #a0a0a8;
+        }
+
+        /* Shifted lower down, further to the right, and made significantly larger */
+        .side-image-container {
+            position: absolute;
+            right: -120px;
+            top: 380px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .side-image {
+            width: 100%;
+            height: auto;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            mix-blend-mode: normal;
+        }
+
+        .cta-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 60px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px 32px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-loadstring {
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            background-size: 400% 400%;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+            animation: rainbow-move 8s linear infinite;
+        }
+
+        .btn-source {
+            background-color: #2a2a30;
+            color: #ffffff;
+        }
+
+        .btn-source:hover {
+            background-color: #35353d;
+        }
+
+        .badge {
+            color: #ff4444;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes rainbow-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ===== Features section (same dark style as rest of page) ===== */
+        .features-section {
+            width: 100%;
+            max-width: 1000px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .features-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .features-subtitle {
+            font-size: 1rem;
+            color: #a0a0a8;
+            margin-bottom: 36px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            text-align: left;
+        }
+
+        .feature-card {
+            background-color: #1a1a1e;
+            border: 1px solid #26262c;
+            border-radius: 12px;
+            padding: 22px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            border-color: #00a8fc;
+        }
+
+        .feature-emoji {
+            font-size: 1.6rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .feature-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            line-height: 1.55;
+            color: #a0a0a8;
+        }
+
+        /* ===== Quick start section ===== */
+        .quickstart-section {
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-top: 36px;
+        }
+
+        .quickstart-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            text-align: left;
+            margin-top: 28px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #00a8fc;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-text {
+            font-size: 0.98rem;
+            line-height: 1.6;
+            color: #a0a0a8;
+            padding-top: 4px;
+        }
+
+        .step-text strong {
+            color: #e2e2e6;
+        }
+
+        .bottom-image-container {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
+            pointer-events: none;
+            margin: 0;
+            padding: 0;
+            line-height: 0;
+        }
+
+        .bottom-image-container .side-image {
+            width: 360px;
+            max-width: 42vw;
+            height: auto;
+            display: block;
+            /* push lower portion below the page edge so only her upper half shows */
+            transform: translateY(12%);
+        }
+
+        .footer-note {
+            position: relative;
+            z-index: 2;
+            margin-top: 40px;
+            font-size: 0.85rem;
+            color: #5a5a62;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1250px) {
+            .layout-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .side-image-container {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin-top: 40px;
+                margin-bottom: 40px;
+                max-width: 450px;
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="snow-canvas"></canvas>
+
+    <div class="layout-wrapper">
+        <div class="main-content">
+            <div class="container">
+                <img class="logo" src="https://raw.githubusercontent.com/DexPPP/DexPPP.github.io/main/DexPlusPlusPlusLogo.png" alt="Logo">
+                <h1 class="headline">The Greatest Debugging Suite</h1>
+                <p class="description">
+                    DexC is your go-to explorer, specifically designed to help you debug or identify vulnerabilities within Roblox games. Originally created by Moon back around 2017 to 2018, Dex has seen many iterations over the years. DexC stands out as one of the latest versions, a feature rich, modified edition of Dex++ developed by Chillz.
+                </p>
+            </div>
+
+            <div class="cta-container">
+                <div class="btn-wrapper">
+                    <button class="btn btn-loadstring" onclick="copyLoadstring()">Loadstring version</button>
+                    <span class="badge">(Recommended)</span>
+                </div>
+
+                <div class="btn-wrapper">
+                    <a href="https://raw.githubusercontent.com/retelile/Dex/main/DexPlusPlusPlus.lua" class="btn btn-source" target="_blank" rel="noopener noreferrer">Source</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="features-section">
+        <h2 class="features-title">What's inside? ✨</h2>
+        <p class="features-subtitle">Everything you need to poke around a game, all in one cozy suite.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-emoji">📂</span>
+                <div class="feature-name">Advanced Object Explorer</div>
+                <p class="feature-desc">A speedy virtual tree that renders massive instance hierarchies without lag. Real time instance tracking plus deep nested search and dynamic filtering.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">📊</span>
+                <div class="feature-name">Dynamic Property Inspector</div>
+                <p class="feature-desc">Inspect and tweak reflection data on the fly. Changed signal listeners track state mutations the instant they happen.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">📐</span>
+                <div class="feature-name">3D Model Viewer</div>
+                <p class="feature-desc">A cozy isolated viewport to pull out any model and study its geometry and spatial data away from the busy workspace.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">🎬</span>
+                <div class="feature-name">Animation Previewer</div>
+                <p class="feature-desc">Preview any Animation on a live rig inside an isolated viewport. Select an Animation in the Explorer, right-click it and choose "Animation Previewer" to spawn a rig that plays the animation on a loop, orbit the camera to inspect it from any angle.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">💻</span>
+                <div class="feature-name">Developer Console</div>
+                <p class="feature-desc">A clean, low overhead log engine that catches output, errors and warnings with precise microsecond timestamps.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">🕵️</span>
+                <div class="feature-name">Embedded Network Spy</div>
+                <p class="feature-desc">Intercepts and decodes RemoteEvent and RemoteFunction calls, with tidy data serialization for quick payload analysis.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">💬</span>
+                <div class="feature-name">Real Time Chat Logger</div>
+                <p class="feature-desc">Quietly captures incoming and outgoing chat, whispers, system logs and channel messages with source indexing.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">💾</span>
+                <div class="feature-name">High Efficiency Save Instance</div>
+                <p class="feature-desc">A fully overhauled serialization engine that skips the slow default dumping. Structural compression means smaller files and way less disk writing.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">📝</span>
+                <div class="feature-name">Integrated Notepad</div>
+                <p class="feature-desc">A little scratchpad for hot swapping code snippets, jotting down memory addresses, or staging scripts mid debugging session.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">🔮</span>
+                <div class="feature-name">Terminal Commands</div>
+                <p class="feature-desc">DexC provides you with our own command system, you can go to your console and type cmds for more info!</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-emoji">🎶</span>
+                <div class="feature-name">Audio Logger</div>
+                <p class="feature-desc">Peek at the ID of any audio playing in the game, so you never have to wonder what track is looping in the background.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="quickstart-section">
+        <h2 class="features-title">Getting started 🚀</h2>
+
+        <div class="quickstart-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <p class="step-text"><strong>Copy the loadstring</strong> with the big rainbow button up top. It lands right in your clipboard.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <p class="step-text"><strong>Paste it into your executor</strong> of choice while in a Roblox game.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <p class="step-text"><strong>Run it</strong> and the DexC window pops up, with the whole game tree yours to explore. Happy debugging! 💙</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="bottom-image-container">
+        <img class="side-image" src="https://raw.githubusercontent.com/DexPPP/DexPPP.github.io/main/Moonwantedthis.png" alt="Preview Showcase">
+    </div>
+
+    <p class="footer-note">
+        Original Dex by Moon (2017 to 2018) · Dex++ by Chillz · DexC by retelile<br>
+        Made with 💙 for curious minds. Not affiliated with Roblox Corporation.
+    </p>
+
+    <script>
+        function copyLoadstring() {
+            const scriptCode = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/retelile/DexC/main/DexC.lua"))()';
+
+            navigator.clipboard.writeText(scriptCode).then(() => {
+                alert('Loadstring copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy. Here is the script:\n\n' + scriptCode);
+            });
+        }
+
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const numFlakes = 100;
+        const flakes = [];
+
+        for (let i = 0; i < numFlakes; i++) {
+            flakes.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 2 + 1,
+                d: Math.random() * numFlakes,
+                speed: Math.random() * 1 + 0.5
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+
+            for (let i = 0; i < numFlakes; i++) {
+                const f = flakes[i];
+                ctx.moveTo(f.x, f.y);
+                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+            }
+            ctx.fill();
+            update();
+        }
+
+        function update() {
+            for (let i = 0; i < numFlakes; i++) {
+                const f = flakes[i];
+                f.y += f.speed;
+                f.x += Math.sin(f.d / 10) * 0.5;
+
+                if (f.y > height) {
+                    flakes[i] = {
+                        x: Math.random() * width,
+                        y: -10,
+                        r: f.r,
+                        d: f.d,
+                        speed: f.speed
+                    };
+                }
+            }
+        }
+
+        function tick() {
+            draw();
+            requestAnimationFrame(tick);
+        }
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        tick();
+    </script>
+</body>
+</html>
